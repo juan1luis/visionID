@@ -11,6 +11,8 @@ app.app_context().push()
 
 running = Blueprint('running', __name__)
 
+
+
 class MainView(View):
     def __init__(self):
         self.ALLOWED_EXTENSIONS = {'jpg'}
@@ -30,7 +32,10 @@ class MainView(View):
         
     def get(self):
         
-        context = {'post_page': False}
+        context = {
+            'data': {},
+            'post_page': False
+            }
         return render_template(self.maintem, **context)
     
     def post(self):
@@ -55,7 +60,7 @@ class MainView(View):
                 except:
                     context = {'msg': 'Something went wrong :/', 'post_page':False}
                 
-                #os.remove(path_file)
+                os.remove(path_file)
 
                 return render_template(self.maintem, **context)
             else:
