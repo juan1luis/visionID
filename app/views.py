@@ -60,7 +60,7 @@ class MainView(View):
                         'msgs' : extract.msgs
                     }
                 except:
-                    context = {'msg': 'Something went wrong :/', 'post_page':False}
+                    context = {'data':{}, 'msg': 'Something went wrong :/', 'post_page':False}
                 
                 os.remove(path_file)
 
