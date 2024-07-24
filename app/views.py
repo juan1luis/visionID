@@ -35,8 +35,9 @@ class MainView(View):
         context = {
             'data': {},
             'post_page': False
-            
+
             }
+        
         return render_template(self.maintem, **context)
     
     def post(self):
