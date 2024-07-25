@@ -9,9 +9,6 @@ tess.pytesseract.tesseract_cmd = os.path.join(APP.config['APP_PATH'],r'Tesseract
 
 
 
-
-
-
 class ExtractData:
 
     def __init__(self, img_path):
