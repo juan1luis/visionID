@@ -48,10 +48,10 @@ class MainView(View):
                 path_file = os.path.join(self.path_file_save, filename)
                 file.save(path_file)
 
-
+                extract = ExtractData(img_path=path_file)
+                extract.execute()
                 try:
-                    extract = ExtractData(img_path=path_file)
-                    extract.execute()
+
                     
                     context = {
                         'data': extract.send_data,
