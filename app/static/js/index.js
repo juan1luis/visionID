@@ -21,3 +21,43 @@ function copyText(id) {
   
     // Alert the user that the text has been copied
   }
+
+
+
+
+
+
+  function graphPie (graph_data){
+
+    var data = [{
+      values: graph_data.values,
+      labels: graph_data.labels,
+      
+      name: 'Extactitud',
+      textinfo: 'none',
+      hole: .4,
+      type: 'pie',
+      marker: {
+        colors: graph_data.colors
+      },
+    }];
+    
+    var layout = {
+      title: 'Elementos Encontrados',
+      annotations: [
+        {
+          font: {
+            size: 20
+          },
+          showarrow: false,
+          text: graph_data.percentage + '%',
+        }
+      ],
+      height: 400,
+      width: 600,
+      showlegend: false,
+    };
+    
+    Plotly.newPlot('graphSectionPie', data, layout);
+
+  };

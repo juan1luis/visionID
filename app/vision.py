@@ -5,8 +5,8 @@ import os
 from app import app as APP
 import re
 import pytesseract as tess
-#tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
-tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
+#tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 
 
@@ -25,6 +25,8 @@ class ExtractData:
 
         self.send_data = []
         self.perc_found = 0
+
+        self.graph_data = {}
 
         self.data_f = {
                 'nombre': '',
@@ -247,12 +249,13 @@ class ExtractData:
     def sinte(self):
         data = []
         count_found = 0
-
+        indx = 0
         for key, value in self.data_f.items():
 
             found = value != ''
 
             item = {
+                'id': indx,
                 'key': key,
                 'value': value,
                 'found': found
@@ -260,17 +263,44 @@ class ExtractData:
 
             data.append(item)
 
+            #Increment values found
             if found:
                 count_found +=1
 
+            #Increment index value
+            indx +=1
 
         if count_found !=0:
-            self.perc_found = np.round(len(self.data_f)/count_found)*100
+            self.perc_found = np.round((count_found/len(self.data_f))*100)
         
         self.send_data = data
 
         return True
 
+    def calculate_perce(self):
+        perc_local = self.perc_found
+
+        graph = {
+            'values': [perc_local,100-perc_local],
+            'lables': ['',''],
+            'colors': ['#FDFEFE','#FDFEFE'],
+            'percentage': perc_local
+        }
+    
+        if perc_local >= 95:
+            graph['colors'][0] = '#2ECC71'
+
+        elif perc_local >= 75:
+            graph['colors'][0] = '#F4D03F'
+
+        elif perc_local >= 50:
+            graph['colors'][0] = '#F39C12'
+        else:
+            graph['colors'][0] = '#E74C3C'
+
+        self.graph_data = graph
+
+        return True
 
     def start_finding(self):
 
@@ -289,3 +319,4 @@ class ExtractData:
         self.start_finding()
 
         self.sinte()
+        self.calculate_perce()

@@ -42,6 +42,7 @@ class MainView(View):
         file = request.files['image_file']  # Access the uploaded file
             
         if file:
+
             #Validate the file name and save it.
             if file and self.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
@@ -50,11 +51,16 @@ class MainView(View):
 
                 extract = ExtractData(img_path=path_file)
                 extract.execute()
-                
 
-                    
+                data = {
+                    'structed_data': extract.send_data,
+                    'raw_data': extract.data_f,
+                    'grap_data': extract.graph_data,
+                    'img_path': extract.img_path
+                }
+                print(data)
                 context = {
-                        'data': extract.send_data,
+                        'data': data,
                         'msgs' : extract.msgs
                     }
                 try:

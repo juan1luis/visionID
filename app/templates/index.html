@@ -12,7 +12,7 @@
     <div class="container-md">
         <div class="row">
             <div class="d-flex justify-content-center">
-                <img src="{{ url_for('static', filename = 'img/datalegen_logo.png') }}" class="mt-3" style="width:120px">
+                <img src="{{ url_for('static', filename = 'img/datalegen_logo.png') }}" class="mt-3" style="width:50px">
             </div>
         </div>
 
@@ -27,29 +27,35 @@
                                 <input type="file" class="form-control p-1" id="image_file" name="image_file"  accept=".jpg, .jpeg" required>
                             </div>
 
-                                <button type="submit" id="Mostrar" onclick="buttonSpinner('Mostrar')" class="btn btn-primary m-3" name="show">Submit</button>
+                                <button type="submit" id="Mostrar" onclick="buttonSpinner('Mostrar')" class="btn btn-primary m-3" name="show">Enviar</button>
 
                         </form>
                     </div>
                 </div>
 
-                "loviuu Ale"        
+                <div id='graphSectionPie'><!-- Plotly chart will be drawn inside this DIV --></div>
+                       
                 {%if data %}
-                <div class="card-body">
+                <div class="card-body mt-4">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th scope="col">Field</th>
-                                <th scope="col">Value</th>
+                                <th scope="col" class="text-center">Campo</th>
+                                <th scope="col" class="text-center">Dato</th>
+                                <th scope="col" class="text-center"></th>
                             </tr>
                         </thead>
                         <tbody>
 
-                            {% for item in data %}
+                            {% for item in data['structed_data'] %}
                             <tr>
-                                <th scope="row">{{item['key']}}</th>
-                                <td>{{ item['value'] }}</td>
-                                <td><button type="button" class="btn btn-primary btn-sm fs-6" onclick="copyText('textToCopy{{ data['nombre'] }}')">Copy</button></td>
+                                <th scope="row" class="text-capitalize">{{item['key']}}</th>
+                                <td id="textToCopy{{ item['id'] }}" class="px-4">{{ item['value'] }}</td>
+                                <td class="d-flex justify-content-center">
+                                    {%if item['found']%}
+                                    <button type="button" class="btn btn-primary btn-sm fs-6" onclick="copyText('textToCopy{{ item['id'] }}')">Copy</button>
+                                    {%endif%}
+                                </td>
 
                             </tr>
 
@@ -58,6 +64,32 @@
                         </tbody>
                     </table>
                 </div>
+                
+
+
+
+                <div class="card-body">
+
+                    <div class="card mt-2">
+                        <div class="card-header d-flex justify-content-between">
+                            <h5>Raw Data</h5>
+                            <button type="button" 
+                                    class="btn btn-primary mr-4"
+                                    style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;"
+                                    onclick="copyText('textToCopy-rawData')"
+                            >
+                                                     Copy
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <p id="textToCopy-rawData">
+                                {{data['raw_data']}}
+                            </p>
+                        </div>
+                      </div>
+
+                </div>
+
                 {%endif%}
 
                 <div class="mt-4">
@@ -74,27 +106,19 @@
 
 
     <div class="container-md">
-        <div class="card">
-            <div class="card_body">
-                <h5 class="text-center my-3">Elements found:</h5>
-                {% for del in deleted %}
-                    <div class="d-flex justify-content-center gap-4">
-                        <h5 class="">{{del['index']}}.-</h5>
-                        <p id="textToCopy{{ del['index'] }}" class="text-success text-center">{{ del['num'] }} ----- {{del['tool']}}</p>
-                        <div>
-                            <button type="button" class="btn btn-primary btn-sm fs-6" onclick="copyText('textToCopy{{ del['index'] }}')">Copy</button>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <div class="container-md">
         <p class="mt-4 text-center" style="font-size: 10px;"> <span style="font-style: italic;">Powered by</span> <a class="" style="color: #4f46e5; text-decoration: none;" href="http://datalegen.com/">Datalegen.com </a></p>
     </div>
-
+    <script src='https://cdn.plot.ly/plotly-2.34.0.min.js'></script>
     <script src="{{ url_for('static', filename = 'js/bootstrap.js') }}" ></script>
     <script src="{{ url_for('static', filename = 'js/index.js') }}" ></script>
+    {%if data %}
+    <script>
+        const grap_data_server = {{ data['grap_data'] | tojson }};
+        console.log(grap_data_server);  // Verify the value in the console
+        graphPie(grap_data_server);
+    </script>
+    {%endif%}
+
+
 </body>
 </html>
