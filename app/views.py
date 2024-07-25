@@ -50,13 +50,15 @@ class MainView(View):
 
                 extract = ExtractData(img_path=path_file)
                 extract.execute()
-                try:
+                
 
                     
-                    context = {
+                context = {
                         'data': extract.send_data,
                         'msgs' : extract.msgs
                     }
+                try:
+                    pass
                 except:
                     context = {'data':{}, 'msg': 'Something went wrong :/', 'post_page':False}
                 
