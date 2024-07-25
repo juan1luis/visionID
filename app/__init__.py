@@ -6,7 +6,7 @@ import os
 app = Flask(__name__)
 
 # Get the path of the current script
-current_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+current_path = os.path.dirname(os.path.abspath(__file__))
 static_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static')
 
 

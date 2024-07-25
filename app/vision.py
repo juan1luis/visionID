@@ -5,7 +5,7 @@ import os
 from app import app as APP
 import re
 import pytesseract as tess
-tess.pytesseract.tesseract_cmd = os.path.join(APP.config['APP_PATH'],r'Tesseract-OCR/tesseract.exe')
+tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
 
 
 
