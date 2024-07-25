@@ -60,7 +60,7 @@ class MainView(View):
                 try:
                     pass
                 except:
-                    context = {'data':{}, 'msg': 'Something went wrong :/', 'post_page':False}
+                    pass#context = {'data':{}, 'msg': 'Something went wrong', 'post_page':False}
                 
                 os.remove(path_file)
 
