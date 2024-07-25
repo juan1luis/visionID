@@ -33,7 +33,8 @@
                     </div>
                 </div>
 
-                "loviuu Ale"                
+                "loviuu Ale"        
+                {%if data %}
                 <div class="card-body">
                     <table class="table table-bordered">
                         <thead>
@@ -43,63 +44,22 @@
                             </tr>
                         </thead>
                         <tbody>
+
+                            {% for item in data %}
                             <tr>
-                                <th scope="row">Nombre</th>
-                                <td>{{ data['nombre'] }}</td>
+                                <th scope="row">{{item['key']}}</th>
+                                <td>{{ item['value'] }}</td>
                                 <td><button type="button" class="btn btn-primary btn-sm fs-6" onclick="copyText('textToCopy{{ data['nombre'] }}')">Copy</button></td>
 
                             </tr>
-                            <tr>
-                                <th scope="row">Domicilio</th>
-                                <td>{{ data['domicilio'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Clave Elector</th>
-                                <td>{{ data['clave_elector'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">CURP</th>
-                                <td>{{ data['curp'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Registro</th>
-                                <td>{{ data['registro'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Estado</th>
-                                <td>{{ data['estado'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Municipio</th>
-                                <td>{{ data['municipio'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Sección</th>
-                                <td>{{ data['seccion'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Localidad</th>
-                                <td>{{ data['localidad'] or 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Emisión</th>
-                                <td>{{ data['emision'] or 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Vigencia</th>
-                                <td>{{ data['vigencia'] or 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Fecha de Nacimiento</th>
-                                <td>{{ data['nacimiento'] }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Sexo</th>
-                                <td>{{ data['sexo'] }}</td>
-                            </tr>
+
+                            {% endfor %}
+
                         </tbody>
                     </table>
                 </div>
+                {%endif%}
+
                 <div class="mt-4">
                     {% if post_page %}
                         <h5 class="text-success text-center">{{msg}}</h5>

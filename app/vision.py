@@ -25,6 +25,9 @@ class ExtractData:
 
         self.msgs = []
 
+        self.send_data = []
+        self.perc_found = 0
+
         self.data_f = {
                 'nombre': '',
                 'domicilio': '',
@@ -243,6 +246,34 @@ class ExtractData:
         self.msgs.append({'detail':'LOCALIDAD not found'})
         return False
     
+    def sinte(self):
+        data = []
+        count_found = 0
+
+        for key, value in self.data_f.items():
+
+            found = value != ''
+
+            item = {
+                'key': key,
+                'value': value,
+                'found': found
+            }
+
+            data.append(item)
+
+            if found:
+                count_found +=1
+
+
+        if count_found !=0:
+            self.perc_found = np.round(len(self.data_f)/count_found)*100
+        
+        self.send_data = data
+
+        return True
+
+
     def start_finding(self):
 
         self.extract_NOMBRE_NACIM_SEX()
@@ -258,3 +289,5 @@ class ExtractData:
         self.structure_data()
 
         self.start_finding()
+
+        self.sinte()

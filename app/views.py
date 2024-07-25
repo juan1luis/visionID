@@ -33,10 +33,8 @@ class MainView(View):
     def get(self):
         
         context = {
-            'data': {},
             'post_page': False
-
-            }
+                   }
         
         return render_template(self.maintem, **context)
     
@@ -56,7 +54,7 @@ class MainView(View):
                     extract.execute()
                     
                     context = {
-                        'data': extract.data_f,
+                        'data': extract.send_data,
                         'msgs' : extract.msgs
                     }
                 except:
