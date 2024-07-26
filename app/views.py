@@ -130,10 +130,11 @@ class APIRestView(BaseView):
 
         if self.allowed_file(file.filename):
             path_file_w, path_file_s, hashed_filename = self.save_file(file)
+            data = self.process_image(path_file_w)
+            data['img_path'] = f'img_worked/{hashed_filename}'
+            return jsonify(data), 200
             try:
-                data = self.process_image(path_file_w)
-                data['img_path'] = f'img_worked/{hashed_filename}'
-                return jsonify(data), 200
+                pass
             except Exception as e:
                 return jsonify({'error': str(e)}), 500
             finally:
