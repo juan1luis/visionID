@@ -9,9 +9,9 @@ import pytesseract as tess
 #Set the location of tesseract
 
 #This is for windows
-tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
+#tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
 #This is for linux
-#tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 
 
