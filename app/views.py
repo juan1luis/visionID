@@ -100,10 +100,11 @@ class MainView(BaseView):
             #First save the file
             path_file_w, path_file_s, hashed_filename = self.save_file(file)
             # Then we start the process and send the data
+            data = self.process_image(path_file_w)
+            data['img_path'] = f'img_worked/{hashed_filename}'
+            context = {'data': data}
             try:
-                data = self.process_image(path_file_w)
-                data['img_path'] = f'img_worked/{hashed_filename}'
-                context = {'data': data, 'msgs': data['msgs']}
+                pass
             except Exception:
                 context = {'data': {}, 'msg': 'Something went wrong', 'post_page': False}
             finally:

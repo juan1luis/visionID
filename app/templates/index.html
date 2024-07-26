@@ -145,8 +145,7 @@
     <script src="{{ url_for('static', filename = 'js/index.js') }}" ></script>
     {%if data %}
     <script>
-        const grap_data_server = {{ data['grap_data'] | tojson }};
-        console.log(grap_data_server);  // Verify the value in the console
+        const grap_data_server = {{ data['graph_data'] | tojson }};
         graphPie(grap_data_server);
     </script>
     {%endif%}
