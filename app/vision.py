@@ -5,27 +5,35 @@ import os
 from app import app as APP
 import re
 import pytesseract as tess
-#tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
-tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+
+#Set the location of tesseract
+
+#This is for windows
+tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
+#This is for linux
+#tess.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 
 
 class ExtractData:
-
+    #Start the initial variables
     def __init__(self, img_path):
         self.img_path = img_path
         
+        #Store text finded by tesserct
         self.doc_text = ''
+        #Store the text as a dicc
         self.text_struct = ''
-        self.indx_clv_elec = -1
 
-        self.msgs = []
+        #Due to the fied 'Domicilio' may diferent lenght of rows we use 'Clave Elector' as reference
+        self.indx_clv_elec = -1
 
         self.send_data = []
         self.perc_found = 0
 
         self.graph_data = {}
 
+        # This is the data that we are looking for
         self.data_f = {
                 'nombre': '',
                 'domicilio': '',
@@ -42,11 +50,11 @@ class ExtractData:
                 'sexo': ''
             }
 
-    
     def extract_text_from_image(self, croppe=False):
         # Load the image using OpenCV
         image = cv2.imread(self.img_path)
-        
+
+        # In this section we are looking to focus where the data is.
         if croppe:
             # Resize the image for better accuracy (optional)
             
@@ -60,14 +68,11 @@ class ExtractData:
             adaptive_thresh = cv2.adaptiveThreshold(
                 gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
             
-            #cv2.imshow('adaptive_thresh', adaptive_thresh)
             
             # Apply morphological operations to close gaps and reduce noise
             kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
             morph_image = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
             
-            #cv2.imshow('morph_image', morph_image)
-
             # Apply Canny edge detection
             edges = cv2.Canny(morph_image, 50, 150)
             
@@ -93,7 +98,7 @@ class ExtractData:
                         largest_area = area
                         largest_rect = approx
             
-            # Draw all contours for visualization
+            """# Draw all contours for visualization
             contour_image = image.copy()
             cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)  # Draw all contours in green
             
@@ -106,50 +111,41 @@ class ExtractData:
             
             # Draw the largest rectangle contour in red
             if largest_rect is not None:
-                cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red
+                cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red"""
 
-            # Display the image with contours
 
-            # If a rectangle was found, crop the image to that rectangle
+            # If a rectangle was found crop the image to that rectangle
             if largest_rect is not None:
                 x, y, w, h = cv2.boundingRect(largest_rect)
                 final_img_use = image[y:y+h, x:x+w]
             else:
                 final_img_use = image
         else:
+            #If were are not going to cropped the image just use the original
             final_img_use = image
 
-        #cv2.imshow('cropped_image', cropped_image)
 
         cropped_image_re = cv2.resize(final_img_use, (0, 0), fx=1.8, fy=1.8)
         
         # Convert the cropped image to grayscale
         gray_cropped = cv2.cvtColor(cropped_image_re, cv2.COLOR_BGR2GRAY)
         
-        #cv2.imshow('gray_cropped', gray_cropped)
-
         # Apply a median blur to reduce noise
         gray_cropped = cv2.medianBlur(gray_cropped, 1)
 
         # Apply binary thresholding
         _, binary_image = cv2.threshold(gray_cropped, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        #cv2.imshow('binary_image', binary_image)
-
-        
         # Use Tesseract to extract text
         text = tess.image_to_string(binary_image)
         
-
-
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #Finally store the text
         self.doc_text = text
         
         return True
 
     def structure_data(self):
-
+        #We struct the data found in the image to better manipulation.
         lines = self.doc_text.split('\n')
         data = {}
         count = 0
@@ -174,12 +170,14 @@ class ExtractData:
         return concatenated_number
 
     def extract_NOMBRE_NACIM_SEX(self):
+        #We stablish the pattern of the data we are looking for
         pattern = re.compile(r'\b\w*NOMBRE\w*\b', re.IGNORECASE)
 
+        #Then we itarete trought the structured text.
         for key, line in self.text_struct.items():
 
             match = pattern.search(line)
-
+            # Check if the pattern matched
             if match:
 
                 try:
@@ -226,7 +224,6 @@ class ExtractData:
                 self.data_f['domicilio'] = direc
                 return True
             
-        print('Domicilio not found')
         return False
     
     def extract_CLAVE_DE_ELECTOR(self):
@@ -237,7 +234,6 @@ class ExtractData:
 
             match = pattern.search(line)
 
-            # Check if the pattern matched
             if match:
                 try:
                     extracted_value = match.group(1)  # Get the first capturing group
@@ -247,7 +243,6 @@ class ExtractData:
                 self.indx_clv_elec = key
                 return True
             
-        print('CLAVE DE ELECTOR not found')
         return False
     
     def extract_EDO_MUNP_SECC(self):
@@ -297,22 +292,20 @@ class ExtractData:
                     pass
 
                 return True
-        self.msgs.append({'detail':'CURP not found'})
+    
         return False
 
     def extract_LOC_EMIS_VIGEN(self):
 
-        # Pattern to match any word containing 'ESTADO'
+
         pattern =  re.compile(r'\b\w*(?:LOCALIDAD|EMISION|VIGENCIA)\w*\b', re.IGNORECASE)
 
-        # Iterate over the lines in self.text_struct
         for key, line in self.text_struct.items():
             
             # Search for the pattern in the line
             match = pattern.findall(line)
             if match:
                 line_values = line.split(' ')
-                print(line_values)
                 try:
                     self.data_f['localidad'] = line_values[1]
                 except:
@@ -354,6 +347,7 @@ class ExtractData:
             indx +=1
 
         if count_found !=0:
+            #Calculate the percentage of data found
             self.perc_found = np.round((count_found/len(self.data_f))*100)
         
         self.send_data = data
@@ -369,7 +363,7 @@ class ExtractData:
             'colors': ['#FDFEFE','#FDFEFE'],
             'percentage': perc_local
         }
-    
+        #Give a color to the graph acording the percentage
         if perc_local >= 95:
             graph['colors'][0] = '#2ECC71'
 
@@ -386,7 +380,7 @@ class ExtractData:
         return True
 
     def start_finding(self):
-
+        # Just go trouhgt each method to find the data
         self.extract_NOMBRE_NACIM_SEX()
         self.extract_CLAVE_DE_ELECTOR()
         if self.indx_clv_elec != -1:
