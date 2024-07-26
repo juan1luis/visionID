@@ -33,7 +33,7 @@ function copyText(id) {
       values: graph_data.values,
       labels: graph_data.labels,
       
-      name: 'Extactitud',
+      name: 'Porcentaje',
       textinfo: 'none',
       hole: .4,
       type: 'pie',

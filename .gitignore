@@ -7,7 +7,7 @@ node_modules
 /coverage
 
 # images
-
+*.jpg
 
 # misc
 .DS_Store
