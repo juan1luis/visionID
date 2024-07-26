@@ -47,14 +47,14 @@ function copyText(id) {
       annotations: [
         {
           font: {
-            size: 20
+            size: 16
           },
           showarrow: false,
           text: graph_data.percentage + '%',
         }
       ],
-      height: 400,
-      width: 600,
+      height: 300,
+      width: 300,
       showlegend: false,
     };
     

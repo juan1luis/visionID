@@ -11,31 +11,65 @@
     
     <div class="container-md">
         <div class="row">
-            <div class="d-flex justify-content-center">
-                <img src="{{ url_for('static', filename = 'img/datalegen_logo.png') }}" class="mt-3" style="width:50px">
+            <div class="">
+                <div class="d-flex justify-content-center align-items-center">
+                    <img src="{{ url_for('static', filename='img/datalegen_logo.png') }}" class="mt-3" style="width: 50px; margin-right: 10px;">
+                    <h1 class="text-center mt-3">Vision ID</h1>
+                </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col">
-                
+                <div class="card  mt-4">
+                    <div class="card-body">
+                        <h5 class="text-center"> Aqui puedes extraer los datos de tu INE </h5>
+                        <p class="text-center" style="font-size: 12px;"> <em>Tu informacion no sera almacenada </em>&#128521;</p>
+
+                        
+                            <p style="color: #4f46e5; font-size: 25px;"><em>-Recomendaciones</em></p>
+                            <ul class="list-group">
+                                <li class="list-group-item">Captura la imagen en una superficie obscura</li>
+                                <li class="list-group-item">La imagen debe capturarce lo mas cerca posible </li>
+                                <li class="list-group-item">Evita usar imagenes borrosas o baja calidad</li>
+                            </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
                 <div class="card text-center mt-4">
-                    <h5 class="card-header fw-semibold text-indigo-600">Select your file</h5>
+                    <h5 class="card-header fw-semibold text-indigo-600">Seleciona tu imagen</h5>
                     <div class="card-body">
                         <form method="post" action="" enctype="multipart/form-data" >
                             <div class="form-group">
                                 <input type="file" class="form-control p-1" id="image_file" name="image_file"  accept=".jpg, .jpeg" required>
                             </div>
 
-                                <button type="submit" id="Mostrar" onclick="buttonSpinner('Mostrar')" class="btn btn-primary m-3" name="show">Enviar</button>
+                                <button type="submit" id="Mostrar" onclick="buttonSpinner('Mostrar')" class="btn btn-primary mt-4" name="show">Enviar</button>
 
                         </form>
+
+                    <img src="{{ url_for('static', filename='img/example_ine.png') }}" class="mt-4" style="width: 145px; margin-right: 10px;">
+
                     </div>
                 </div>
+            </div>
+        </div>
+         
+        <div class="row">
 
-                <div id='graphSectionPie'><!-- Plotly chart will be drawn inside this DIV --></div>
-                       
+            <div class="col">
                 {%if data %}
+
+                <div class="card mt-2">
+                    <div class="card-body d-flex justify-content-evenly">
+                        <img src="{{ url_for('static', filename=data['img_path']) }}" class="mt-4" style="height: 250px;">
+                        <div id='graphSectionPie'></div>
+                    </div>
+                </div>
+                
+                       
                 <div class="card-body mt-4">
                     <table class="table table-bordered">
                         <thead>
@@ -65,8 +99,6 @@
                     </table>
                 </div>
                 
-
-
 
                 <div class="card-body">
 
@@ -99,7 +131,7 @@
                         <h5 class="text-danger text-center">{{msg}}</h5>
                     {% endif %}
                 </div>
-
+            </div>
 
             </div>
         </div>

@@ -19,8 +19,6 @@ class ExtractData:
         self.text_struct = ''
         self.indx_clv_elec = -1
 
-        self.indx_ready = set()
-
         self.msgs = []
 
         self.send_data = []
@@ -44,38 +42,106 @@ class ExtractData:
                 'sexo': ''
             }
     
-    #Extract text
     def extract_text_from_image(self):
         # Load the image using OpenCV
         image = cv2.imread(self.img_path)
         
-        # Display the original image
-        #cv2.imshow('Original Image', image)
-        image = cv2.resize(image, (0,0), fx=1.8, fy=1.8)
+        # Resize the image for better accuracy (optional)
+        
         # Convert the image to grayscale
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
-        # Apply some preprocessing (optional, depends on the image)
-        gray_image = cv2.medianBlur(gray_image, 3)  # Reduce noise
+        # Apply a median blur to reduce noise
+        gray_image = cv2.medianBlur(gray_image, 3)
+        
+        # Apply adaptive thresholding
+        adaptive_thresh = cv2.adaptiveThreshold(
+            gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
+        
+        # Apply morphological operations to close gaps and reduce noise
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+        morph_image = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
+        
+        # Apply Canny edge detection
+        edges = cv2.Canny(morph_image, 50, 150)
+        
+        # Find contours in the edged image
+        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Initialize a variable to store the largest rectangle contour
+        largest_rect = None
+        largest_area = 0
+        
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area < 1000:  # Filter out small contours by area
+                continue
 
-        #cv2.imshow('Gray Scale', gray_image)
-        _, binary_image = cv2.threshold(gray_image, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            # Approximate the contour to a polygon
+            epsilon = 0.02 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            
+            # Check if the approximated contour has four points (rectangle)
+            if len(approx) == 4:
+                if area > largest_area:
+                    largest_area = area
+                    largest_rect = approx
         
-        # Display the processed image
-        #cv2.imshow('Processed Image', binary_image)
+        # Draw all contours for visualization
+        contour_image = image.copy()
+        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)  # Draw all contours in green
         
-        # Wait for a key press and close the image windows
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # Draw all rectangular contours
+        for contour in contours:
+            epsilon = 0.02 * cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+            if len(approx) == 4:
+                cv2.drawContours(contour_image, [approx], -1, (255, 0, 0), 2)  # Draw all rectangles in blue
+        
+        # Draw the largest rectangle contour in red
+        if largest_rect is not None:
+            cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red
+
+        # Display the image with contours
+
+        # If a rectangle was found, crop the image to that rectangle
+        if largest_rect is not None:
+            x, y, w, h = cv2.boundingRect(largest_rect)
+            cropped_image = image[y:y+h, x:x+w]
+        else:
+            cropped_image = image
+        
+        #cv2.imshow('cropped_image', cropped_image)
+
+
+        cropped_image_re = cv2.resize(cropped_image, (0, 0), fx=1.8, fy=1.8)
+
+        
+        # Convert the cropped image to grayscale
+        gray_cropped = cv2.cvtColor(cropped_image_re, cv2.COLOR_BGR2GRAY)
+        
+        #cv2.imshow('gray_cropped', gray_cropped)
+
+        # Apply a median blur to reduce noise
+        gray_cropped = cv2.medianBlur(gray_cropped, 1)
+
+        # Apply binary thresholding
+        _, binary_image = cv2.threshold(gray_cropped, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        #cv2.imshow('binary_image', binary_image)
+
         
         # Use Tesseract to extract text
         text = tess.image_to_string(binary_image)
-        #text = tess.image_to_string(binary_image, lang='spa', config=f'--oem 3 --psm 6  -c tessedit_char_whitelist="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789()/-.calmg* "')
+        
 
+
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
         self.doc_text = text
         
-        return True  
-        
+        return True
+
     def structure_data(self):
 
         lines = self.doc_text.split('\n')
@@ -83,14 +149,24 @@ class ExtractData:
         count = 0
         for i in range(len(lines)):
 
-            if lines[i] != '':
+            if lines[i] != '' and len(lines[i]) >= 3:
                 data[count] = lines[i]
                 count += 1
 
         self.text_struct = data
 
         return True
-    
+
+    #Find Data   
+    def num_from_str(self, string):
+        # Find all numeric sequences in the text
+        numbers = re.findall(r'\d+', string)
+        
+        # Join all numbers into a single string
+        concatenated_number = ''.join(numbers)
+        
+        return concatenated_number
+
     def extract_NOMBRE_NACIM_SEX(self):
         pattern = re.compile(r'\b\w*NOMBRE\w*\b', re.IGNORECASE)
 
@@ -99,35 +175,35 @@ class ExtractData:
             match = pattern.search(line)
 
             if match:
-                self.indx_ready.add(key) #Index where the word 'NAME' is.
 
-                line_data_1 = self.text_struct[key+1].split(' ')
-                self.indx_ready.add(key + 1) #Index where the word First last name is.
-                last_name_1 = line_data_1[0]
+                try:
 
-                #The born date is in the same line as the first last name
-                self.data_f['nacimiento'] = line_data_1[1]
+                    line_data_1 = self.text_struct[key+1].split(' ')
+                    last_name_1 = line_data_1[0]
 
-                line_data_2 = self.text_struct[key + 2].split(' ')
-                self.indx_ready.add(key + 2) #Index where the word Second last name is.
-                last_name_2 = line_data_2[0]
+                    #The born date is in the same line as the first last name
+                    self.data_f['nacimiento'] = line_data_1[1]
 
-                #The sex is in the same line as the second last name
-                if len(line_data_2) >= 3:
+                    line_data_2 = self.text_struct[key + 2].split(' ')
+                    last_name_2 = line_data_2[0]
+
+                    #The sex is in the same line as the second last name
+                    if len(line_data_2) >= 3:
+                        
+                        self.data_f['sexo'] = line_data_2[2]
                     
-                    self.data_f['sexo'] = line_data_2[2]
-                
-                raw_name = self.text_struct[key + 3].split(' ')
-                self.indx_ready.add(key + 3) #Index where the word Name is.
+                    raw_name = self.text_struct[key + 3].split(' ')
 
-                filter_name = [part for part in raw_name if len(part) > 1]
-        
-                # Join the filtered words into a single string
-                name = ' '.join(filter_name)
-                
-                self.data_f['nombre'] = f'{name} {last_name_1} {last_name_2}'
+                    filter_name = [part for part in raw_name if len(part) > 1]
+            
+                    # Join the filtered words into a single string
+                    name = ' '.join(filter_name)
+                    
+                    self.data_f['nombre'] = f'{name} {last_name_1} {last_name_2}'
+                    return True
+                except:
+                    return False
 
-    #Find Data   
     def extract_DOMICILIO(self):
 
         pattern = re.compile(r'\bDOMIC\w*\b', re.IGNORECASE)
@@ -157,10 +233,11 @@ class ExtractData:
 
             # Check if the pattern matched
             if match:
-                self.indx_ready.add(key + 2) #Index where the word Clave De ELECTOR is.
-
-                extracted_value = match.group(1)  # Get the first capturing group
-                self.data_f['clave_elector'] = extracted_value
+                try:
+                    extracted_value = match.group(1)  # Get the first capturing group
+                    self.data_f['clave_elector'] = extracted_value
+                except:
+                    pass
                 self.indx_clv_elec = key
                 return True
             
@@ -180,31 +257,38 @@ class ExtractData:
             
             # Print whether a match was found
             if match:
-                self.indx_ready.add(key) #Index with the 3 values
-                
                 line_values = line.split(' ')
-                self.data_f['estado'] = line_values[1]
-                self.data_f['municipio'] = line_values[3]
-                self.data_f['seccion'] = line_values[5]
+                try:
+                    self.data_f['estado'] = self.num_from_str(line_values[1])
+                except:
+                    pass
+                try:
+                    self.data_f['municipio'] = self.num_from_str(line_values[3])
+                except:
+                    pass
+                try:
+                    self.data_f['seccion'] = self.num_from_str(line_values[5])
+                except:
+                    pass
 
     def extract_CURP_REGIS(self):
 
-        pattern = re.compile(r'\b\w*CURP\w*\b', re.IGNORECASE)
+        pattern = re.compile(r'\b\w*CUR\w*\b', re.IGNORECASE)
 
         for key, line in self.text_struct.items():
 
             match = pattern.search(line)
 
             if match:
-                self.indx_ready.add(key) #Index with the CURP
                 line_data = self.text_struct[key].split(' ')
-
-                self.data_f['curp'] = line_data[1]
-
-                self.data_f['registro'] = line_data[-2]
-                
-
-
+                try:
+                    self.data_f['curp'] = line_data[1]
+                except:
+                    pass
+                try:
+                    self.data_f['registro'] = line_data[-2]
+                except:
+                    pass
 
                 return True
         self.msgs.append({'detail':'CURP not found'})
@@ -213,37 +297,29 @@ class ExtractData:
     def extract_LOC_EMIS_VIGEN(self):
 
         # Pattern to match any word containing 'ESTADO'
-        pattern_edo = re.compile(r'\b\w*LOCALIDAD\w*\b', re.IGNORECASE)
+        pattern =  re.compile(r'\b\w*(?:LOCALIDAD|EMISION|VIGENCIA)\w*\b', re.IGNORECASE)
 
         # Iterate over the lines in self.text_struct
         for key, line in self.text_struct.items():
             
             # Search for the pattern in the line
-            match = pattern_edo.search(line)
-            
-            # Print whether a match was found
+            match = pattern.findall(line)
             if match:
-                self.indx_ready.add(key) #Index with the 3 values
-
                 line_values = line.split(' ')
                 try:
-                    self.data_f['localidad'] = line_values[1]
+                    self.data_f['localidad'] =self.num_from_str(line_values[1])
                 except:
-                    self.msgs.append({'detail':'LOCALIDAD not found'})
-                    
+                    pass                    
                 try:
-                    self.data_f['municipio'] = line_values[3]
+                    self.data_f['emision'] = self.num_from_str(line_values[3])
                 except:
-                    self.msgs.append({'detail':'SECCION not found'})
-
+                    pass
                 try:
-                    self.data_f['seccion'] = line_values[5]
+                    self.data_f['vigencia'] =  self.num_from_str(line_values[5])
                 except:
-                    self.msgs.append({'detail':'SECCION not found'})
-
+                    pass
                 return True
             
-        self.msgs.append({'detail':'LOCALIDAD not found'})
         return False
     
     def sinte(self):
@@ -310,6 +386,7 @@ class ExtractData:
             self.extract_DOMICILIO()
         self.extract_EDO_MUNP_SECC()
         self.extract_CURP_REGIS()
+        self.extract_LOC_EMIS_VIGEN()
 
     def execute(self):
 
