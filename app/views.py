@@ -79,7 +79,6 @@ class MainView(View):
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')   
                 hashed_filename = timestamp + filename
 
-
                 file_data = file.read()
 
                 #Save image in dir for work
@@ -92,24 +91,24 @@ class MainView(View):
                 with open(path_file_s, 'wb') as f:
                     f.write(file_data)
 
-                extract = ExtractData(img_path=path_file_w)
-                extract.execute()
 
-                data = {
-                    'structed_data': extract.send_data,
-                    'raw_data': extract.data_f,
-                    'grap_data': extract.graph_data,
-                    'img_path': f'img_worked/{hashed_filename}'
-
-                }
-                context = {
-                        'data': data,
-                        'msgs' : extract.msgs
-                    }
                 try:
-                    pass
+                    extract = ExtractData(img_path=path_file_w)
+                    extract.execute()
+
+                    data = {
+                        'structed_data': extract.send_data,
+                        'raw_data': extract.data_f,
+                        'grap_data': extract.graph_data,
+                        'img_path': f'img_worked/{hashed_filename}'
+
+                    }
+                    context = {
+                            'data': data,
+                            'msgs' : extract.msgs
+                        }
                 except:
-                    pass#context = {'data':{}, 'msg': 'Something went wrong', 'post_page':False}
+                    context = {'data':{}, 'msg': 'Something went wrong', 'post_page':False}
                 
                 os.remove(path_file_w)
                 delete_all_images(path_file_s)

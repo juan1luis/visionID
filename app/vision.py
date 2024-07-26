@@ -41,81 +41,87 @@ class ExtractData:
                 'nacimiento': '',
                 'sexo': ''
             }
+
     
-    def extract_text_from_image(self):
+    def extract_text_from_image(self, croppe=False):
         # Load the image using OpenCV
         image = cv2.imread(self.img_path)
         
-        # Resize the image for better accuracy (optional)
-        
-        # Convert the image to grayscale
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        
-        # Apply a median blur to reduce noise
-        gray_image = cv2.medianBlur(gray_image, 3)
-        
-        # Apply adaptive thresholding
-        adaptive_thresh = cv2.adaptiveThreshold(
-            gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
-        
-        # Apply morphological operations to close gaps and reduce noise
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
-        morph_image = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
-        
-        # Apply Canny edge detection
-        edges = cv2.Canny(morph_image, 50, 150)
-        
-        # Find contours in the edged image
-        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # Initialize a variable to store the largest rectangle contour
-        largest_rect = None
-        largest_area = 0
-        
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if area < 1000:  # Filter out small contours by area
-                continue
-
-            # Approximate the contour to a polygon
-            epsilon = 0.02 * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)
+        if croppe:
+            # Resize the image for better accuracy (optional)
             
-            # Check if the approximated contour has four points (rectangle)
-            if len(approx) == 4:
-                if area > largest_area:
-                    largest_area = area
-                    largest_rect = approx
-        
-        # Draw all contours for visualization
-        contour_image = image.copy()
-        cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)  # Draw all contours in green
-        
-        # Draw all rectangular contours
-        for contour in contours:
-            epsilon = 0.02 * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)
-            if len(approx) == 4:
-                cv2.drawContours(contour_image, [approx], -1, (255, 0, 0), 2)  # Draw all rectangles in blue
-        
-        # Draw the largest rectangle contour in red
-        if largest_rect is not None:
-            cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red
+            # Convert the image to grayscale
+            gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # Display the image with contours
+            # Apply a median blur to reduce noise
+            gray_image = cv2.medianBlur(gray_image, 3)
+            
+            # Apply adaptive thresholding
+            adaptive_thresh = cv2.adaptiveThreshold(
+                gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
+            
+            #cv2.imshow('adaptive_thresh', adaptive_thresh)
+            
+            # Apply morphological operations to close gaps and reduce noise
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+            morph_image = cv2.morphologyEx(adaptive_thresh, cv2.MORPH_CLOSE, kernel)
+            
+            #cv2.imshow('morph_image', morph_image)
 
-        # If a rectangle was found, crop the image to that rectangle
-        if largest_rect is not None:
-            x, y, w, h = cv2.boundingRect(largest_rect)
-            cropped_image = image[y:y+h, x:x+w]
+            # Apply Canny edge detection
+            edges = cv2.Canny(morph_image, 50, 150)
+            
+            # Find contours in the edged image
+            contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            
+            # Initialize a variable to store the largest rectangle contour
+            largest_rect = None
+            largest_area = 0
+            
+            for contour in contours:
+                area = cv2.contourArea(contour)
+                if area < 1000:  # Filter out small contours by area
+                    continue
+
+                # Approximate the contour to a polygon
+                epsilon = 0.02 * cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+                
+                # Check if the approximated contour has four points (rectangle)
+                if len(approx) == 4:
+                    if area > largest_area:
+                        largest_area = area
+                        largest_rect = approx
+            
+            # Draw all contours for visualization
+            contour_image = image.copy()
+            cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)  # Draw all contours in green
+            
+            # Draw all rectangular contours
+            for contour in contours:
+                epsilon = 0.02 * cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+                if len(approx) == 4:
+                    cv2.drawContours(contour_image, [approx], -1, (255, 0, 0), 2)  # Draw all rectangles in blue
+            
+            # Draw the largest rectangle contour in red
+            if largest_rect is not None:
+                cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red
+
+            # Display the image with contours
+
+            # If a rectangle was found, crop the image to that rectangle
+            if largest_rect is not None:
+                x, y, w, h = cv2.boundingRect(largest_rect)
+                final_img_use = image[y:y+h, x:x+w]
+            else:
+                final_img_use = image
         else:
-            cropped_image = image
-        
+            final_img_use = image
+
         #cv2.imshow('cropped_image', cropped_image)
 
-
-        cropped_image_re = cv2.resize(cropped_image, (0, 0), fx=1.8, fy=1.8)
-
+        cropped_image_re = cv2.resize(final_img_use, (0, 0), fx=1.8, fy=1.8)
         
         # Convert the cropped image to grayscale
         gray_cropped = cv2.cvtColor(cropped_image_re, cv2.COLOR_BGR2GRAY)
@@ -136,8 +142,8 @@ class ExtractData:
         
 
 
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         self.doc_text = text
         
         return True
@@ -306,16 +312,17 @@ class ExtractData:
             match = pattern.findall(line)
             if match:
                 line_values = line.split(' ')
+                print(line_values)
                 try:
-                    self.data_f['localidad'] =self.num_from_str(line_values[1])
+                    self.data_f['localidad'] = line_values[1]
                 except:
                     pass                    
                 try:
-                    self.data_f['emision'] = self.num_from_str(line_values[3])
+                    self.data_f['emision'] = line_values[3]
                 except:
                     pass
                 try:
-                    self.data_f['vigencia'] =  self.num_from_str(line_values[5])
+                    self.data_f['vigencia'] = line_values[5]
                 except:
                     pass
                 return True
@@ -390,9 +397,13 @@ class ExtractData:
 
     def execute(self):
 
-        self.extract_text_from_image()
+        self.extract_text_from_image(croppe=True)
         self.structure_data()
-
+        #Is possible the cropped went wrong due to diferent sizing, so if we don't find  enought data we are going to repeat but with out cropping.
+        if len(self.text_struct) <= 5:
+            self.extract_text_from_image()
+            self.structure_data()
+        #Now that we have the data we start looking the fields.
         self.start_finding()
 
         self.sinte()
