@@ -31,7 +31,7 @@
                             <ul class="list-group">
                                 <li class="list-group-item">Captura la imagen en una superficie obscura</li>
                                 <li class="list-group-item">La imagen debe capturarse lo más cerca posible </li>
-                                <li class="list-group-item">Evita usar imagenes borrosas o baja calidad</li>
+                                <li class="list-group-item">Evita usar imagenes borrosas o de baja calidad</li>
                             </ul>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                         </thead>
                         <tbody>
 
-                            {% for item in data['structed_data'] %}
+                            {% for item in data['structured_data'] %}
                             <tr>
                                 <th scope="row" class="text-capitalize">{{item['key']}}</th>
                                 <td id="textToCopy{{ item['id'] }}" class="px-4">{{ item['value'] }}</td>

@@ -6,7 +6,7 @@ from app import app as APP
 import re
 import pytesseract as tess
 
-#Set the location of tesseract
+#Set the location of Tesseract
 
 #This is for windows
 #tess.pytesseract.tesseract_cmd = os.path.join(os.path.dirname(APP.config['APP_PATH']),r'Tesseract-OCR/tesseract.exe')
@@ -20,12 +20,12 @@ class ExtractData:
     def __init__(self, img_path):
         self.img_path = img_path
         
-        #Store text finded by tesserct
+        #Store text found by tesseract
         self.doc_text = ''
         #Store the text as a dicc
         self.text_struct = ''
 
-        #Due to the fied 'Domicilio' may diferent lenght of rows we use 'Clave Elector' as reference
+        #Due to the fied 'Domicilio' there may be a different lenght of rows, we use 'Clave Elector' as reference
         self.indx_clv_elec = -1
 
         self.send_data = []
@@ -54,7 +54,7 @@ class ExtractData:
         # Load the image using OpenCV
         image = cv2.imread(self.img_path)
 
-        # In this section we are looking to focus where the data is.
+        # In this section we wanna focus where the data is.
         if croppe:
             # Resize the image for better accuracy (optional)
             
@@ -76,7 +76,7 @@ class ExtractData:
             # Apply Canny edge detection
             edges = cv2.Canny(morph_image, 50, 150)
             
-            # Find contours in the edged image
+            # Find contours on the edged image
             contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             
             # Initialize a variable to store the largest rectangle contour
@@ -114,14 +114,14 @@ class ExtractData:
                 cv2.drawContours(contour_image, [largest_rect], -1, (0, 0, 255), 2)  # Draw the largest rectangle in red"""
 
 
-            # If a rectangle was found crop the image to that rectangle
+            # If a rectangle was found then crop the image in that rectangle size
             if largest_rect is not None:
                 x, y, w, h = cv2.boundingRect(largest_rect)
                 final_img_use = image[y:y+h, x:x+w]
             else:
                 final_img_use = image
         else:
-            #If were are not going to cropped the image just use the original
+            #If we are not going to crop the image then we just use the original
             final_img_use = image
 
 
@@ -145,7 +145,7 @@ class ExtractData:
         return True
 
     def structure_data(self):
-        #We struct the data found in the image to better manipulation.
+        #We structure the data found in the image to have better manipulation.
         lines = self.doc_text.split('\n')
         data = {}
         count = 0
@@ -173,7 +173,7 @@ class ExtractData:
         #We stablish the pattern of the data we are looking for
         pattern = re.compile(r'\b\w*NOMBRE\w*\b', re.IGNORECASE)
 
-        #Then we itarete trought the structured text.
+        #Then we itarete through the structured text.
         for key, line in self.text_struct.items():
 
             match = pattern.search(line)
@@ -185,7 +185,7 @@ class ExtractData:
                     line_data_1 = self.text_struct[key+1].split(' ')
                     last_name_1 = line_data_1[0]
 
-                    #The born date is in the same line as the first last name
+                    #The birth date is in the same line as the first last name
                     self.data_f['nacimiento'] = line_data_1[1]
 
                     line_data_2 = self.text_struct[key + 2].split(' ')
@@ -256,7 +256,7 @@ class ExtractData:
             # Search for the pattern in the line
             match = pattern_edo.search(line)
             
-            # Print whether a match was found
+            # Print if a match was found
             if match:
                 line_values = line.split(' ')
                 try:
@@ -296,7 +296,6 @@ class ExtractData:
         return False
 
     def extract_LOC_EMIS_VIGEN(self):
-
 
         pattern =  re.compile(r'\b\w*(?:LOCALIDAD|EMISION|VIGENCIA)\w*\b', re.IGNORECASE)
 
@@ -363,7 +362,7 @@ class ExtractData:
             'colors': ['#FDFEFE','#FDFEFE'],
             'percentage': perc_local
         }
-        #Give a color to the graph acording the percentage
+        #Give a color to the graph according to the percentage
         if perc_local >= 95:
             graph['colors'][0] = '#2ECC71'
 
@@ -380,7 +379,7 @@ class ExtractData:
         return True
 
     def start_finding(self):
-        # Just go trouhgt each method to find the data
+        # Just go through each method to find the data
         self.extract_NOMBRE_NACIM_SEX()
         self.extract_CLAVE_DE_ELECTOR()
         if self.indx_clv_elec != -1:
@@ -393,11 +392,11 @@ class ExtractData:
 
         self.extract_text_from_image(croppe=True)
         self.structure_data()
-        #Is possible the cropped went wrong due to diferent sizing, so if we don't find  enought data we are going to repeat but with out cropping.
+        #It`s possible that the cropped part went wrong due to different sizing, so if we don't find enough data we are going to repeat the process but without cropping.
         if len(self.text_struct) <= 5:
             self.extract_text_from_image()
             self.structure_data()
-        #Now that we have the data we start looking the fields.
+        #Now that we have the data we start looking for the fields.
         self.start_finding()
 
         self.sinte()

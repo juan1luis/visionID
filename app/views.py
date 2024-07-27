@@ -24,7 +24,7 @@ def delete_all_images(except_path, static_path):
         if num_of_images >= 10:
             # Iterate over the found files and delete them
             for file in files:
-                #We avoid to delete the img just processed to show it.
+                #We avoid to delete the image that was just processed to display it.
                 if except_path != file:
                     try:
                         os.remove(file)
@@ -43,14 +43,14 @@ class BaseView(View):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in BaseView.ALLOWED_EXTENSIONS
 
     def save_file(self, file):
-        #First secure the name then create a unique name to stored for a moment, so the user can whatch the image
+        #First, secure the name then create a unique name to store it for a moment, so the user can watch the image
         filename = secure_filename(file.filename)
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         hashed_filename = timestamp + filename
         file_data = file.read()
 
-        #Then the image is saved in two diferent paths, one if the work with it
-        # and the second is for the user.
+        #Then the image is saved in two diferent paths, one is to work with it
+        # and the second one is for the user.
         path_file_w = os.path.join(self.path_file_save_w, hashed_filename)
         with open(path_file_w, 'wb') as f:
             f.write(file_data)
@@ -62,7 +62,7 @@ class BaseView(View):
         return path_file_w, path_file_s, hashed_filename
 
     def process_image(self, path_file_w):
-        # We use this class to process the images, and we get the data.
+        # We use this class to process the images, and we extract the data.
         extract = ExtractData(img_path=path_file_w)
         extract.execute()
 
@@ -73,7 +73,7 @@ class BaseView(View):
             'graph_data': extract.graph_data,
         }
     
-#This View is gonna be used for the user to interact
+#This view is gonna be used for the user to interact
 class MainView(BaseView):
     def __init__(self):
         super().__init__()
@@ -100,11 +100,12 @@ class MainView(BaseView):
             #First save the file
             path_file_w, path_file_s, hashed_filename = self.save_file(file)
             # Then we start the process and send the data
-            data = self.process_image(path_file_w)
-            data['img_path'] = f'img_worked/{hashed_filename}'
-            context = {'data': data}
+
             try:
-                pass
+
+                data = self.process_image(path_file_w)
+                data['img_path'] = f'img_worked/{hashed_filename}'
+                context = {'data': data}
             except Exception:
                 context = {'data': {}, 'msg': 'Something went wrong', 'post_page': False}
             finally:
@@ -115,7 +116,7 @@ class MainView(BaseView):
 
         return render_template(self.maintem, **context)
 
-#This View allow to offert a service to who wants to use this app as a service for their own app.
+#This View allows to offer a service to whoever wants to use this app as a service for their own app.
 class APIRestView(BaseView):
     def dispatch_request(self):
         if request.method == 'POST':
@@ -144,6 +145,6 @@ class APIRestView(BaseView):
 
 
 
-#We let notice Flask about the views
+#We notice Flask about the views
 app.add_url_rule('/', view_func=MainView.as_view('MainView'), methods=['GET', 'POST'])
 app.add_url_rule('/api-request', view_func=APIRestView.as_view('APIRestView'), methods=['POST'])
