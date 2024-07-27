@@ -306,15 +306,15 @@ class ExtractData:
             if match:
                 line_values = line.split(' ')
                 try:
-                    self.data_f['localidad'] = line_values[1]
+                    self.data_f['localidad'] =self.num_from_str(line_values[1])
                 except:
                     pass                    
                 try:
-                    self.data_f['emision'] = line_values[3]
+                    self.data_f['emision'] = self.num_from_str(line_values[3])
                 except:
                     pass
                 try:
-                    self.data_f['vigencia'] = line_values[5]
+                    self.data_f['vigencia'] = self.num_from_str(line_values[5])
                 except:
                     pass
                 return True
@@ -396,6 +396,7 @@ class ExtractData:
         if len(self.text_struct) <= 5:
             self.extract_text_from_image()
             self.structure_data()
+            
         #Now that we have the data we start looking for the fields.
         self.start_finding()
 
